@@ -1,0 +1,696 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NoSmoking - Czysty Oddech | Twój Licznik Wolności od Dymu i Vapingu</title>
+  <meta name="description" content="Zaawansowana, motywująca aplikacja do rzucania palenia papierosów tradycyjnych oraz e-papierosów (vaping). Mierz czas wolności od 19.10.2026, śledź medyczną regenerację płuc i naczyń, oszczędzaj pieniądze i pokonuj głód nikotynowy.">
+  
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="theme-cigarettes">
+
+  <!-- Confetti Canvas -->
+  <canvas id="confetti-canvas"></canvas>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container" class="toast-container" aria-live="polite"></div>
+
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <div class="logo-area" id="brand-logo" title="NoSmoking - Czysty Oddech">
+        <div class="logo-icon-wrap" id="brand-logo-icon">🫁</div>
+        <div class="logo-title-group">
+          <h1 id="brand-title">Czysty Oddech</h1>
+          <span id="header-status-badge" class="status-badge">
+            <span class="pulse-dot"></span> <span id="header-status-text">Wolny od dymu</span>
+          </span>
+        </div>
+      </div>
+
+      <!-- Szybki Przełącznik Kategorii: Papierosy vs E-papierosy -->
+      <div class="category-switch-wrapper">
+        <div class="category-switcher" id="category-switcher" role="radiogroup" aria-label="Wybierz nałóg">
+          <button type="button" class="category-toggle-btn active" data-category="cigarettes" id="toggle-cat-cigarettes" title="Tryb: Tradycyjne Papierosy">
+            <span class="cat-icon">🚬</span>
+            <span class="cat-label">Papierosy</span>
+          </button>
+          <button type="button" class="category-toggle-btn" data-category="vape" id="toggle-cat-vape" title="Tryb: E-papierosy i Vaping">
+            <span class="cat-icon">💨</span>
+            <span class="cat-label">E-papierosy</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs (Desktop) -->
+      <nav aria-label="Główne menu nawigacji">
+        <ul class="nav-links">
+          <li><button class="nav-btn active" data-tab="pulpit" id="nav-btn-pulpit">🏠 Pulpit</button></li>
+          <li><button class="nav-btn" data-tab="zdrowie" id="nav-btn-zdrowie">🫁 Regeneracja</button></li>
+          <li><button class="nav-btn" data-tab="sos" id="nav-btn-sos">🚨 SOS Głód</button></li>
+          <li><button class="nav-btn" data-tab="skarbiec" id="nav-btn-skarbiec">💰 Skarbiec</button></li>
+          <li><button class="nav-btn" data-tab="odznaki" id="nav-btn-odznaki">🏆 Odznaki</button></li>
+          <li><button class="nav-btn" data-tab="wiedza" id="nav-btn-wiedza">💡 Wiedza</button></li>
+          <li><button class="nav-btn" data-tab="dziennik" id="nav-btn-dziennik">📝 Dziennik</button></li>
+        </ul>
+      </nav>
+
+      <!-- Header Action Buttons -->
+      <div class="header-actions">
+        <button class="sos-trigger-btn" id="header-sos-btn" title="Pomoc w nagłym głodzie nikotynowym">
+          <span>🚨</span> SOS Głód
+        </button>
+        <button class="icon-btn" id="open-settings-btn" title="Ustawienia licznika i finansów" aria-label="Ustawienia">
+          ⚙️
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    
+    <!-- Banner przedstartowy (widoczny jeśli aktualny czas < data rzucenia) -->
+    <div id="pre-quit-banner" class="pre-quit-banner" style="display: none;">
+      <div class="pre-quit-info">
+        <h3 id="pre-quit-title">⏳ Godzina Zero zbliża się wielkimi krokami!</h3>
+        <p id="pre-quit-desc">Twój zaplanowany start wolności: <strong>19 października 2026, godz. 00:00</strong>. Wykorzystaj ten czas, by wyrzucić resztki i mentalnie przygotować się na odrodzenie Twojego ciała.</p>
+      </div>
+      <div class="pre-quit-timer">
+        <div class="pqt-block">
+          <div class="pqt-val" id="pqt-hours">00</div>
+          <div class="pqt-lbl">Godz</div>
+        </div>
+        <div class="pqt-colon">:</div>
+        <div class="pqt-block">
+          <div class="pqt-val" id="pqt-mins">00</div>
+          <div class="pqt-lbl">Min</div>
+        </div>
+        <div class="pqt-colon">:</div>
+        <div class="pqt-block">
+          <div class="pqt-val" id="pqt-secs">00</div>
+          <div class="pqt-lbl">Sek</div>
+        </div>
+      </div>
+      <div class="pre-quit-actions">
+        <button class="btn btn-primary" id="start-now-early-btn">
+          🚀 Zgasiłem ostatniego papierosa już teraz!
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Section: Główny Zegar Wolności -->
+    <section class="hero-section" aria-label="Licznik czasu bez nikotyny">
+      <div class="hero-grid">
+        
+        <!-- Główna Karta Czasu -->
+        <div class="hero-main-card">
+          <div class="hero-header">
+            <div class="hero-title-wrap">
+              <h2 id="hero-clock-subtitle">Czas Czystego Życia</h2>
+              <div class="hero-date-badge" id="hero-quit-date-display">Od: 19.10.2026, 00:00</div>
+            </div>
+            <button class="btn btn-outline btn-sm" id="hero-edit-date-btn">Zmień datę</button>
+          </div>
+
+          <!-- Kafelki Zegara -->
+          <div class="clock-display" id="main-clock-display">
+            <div class="clock-tile">
+              <div class="clock-val" id="timer-days">0</div>
+              <div class="clock-lbl">Dni</div>
+            </div>
+            <div class="clock-tile">
+              <div class="clock-val" id="timer-hours">00</div>
+              <div class="clock-lbl">Godzin</div>
+            </div>
+            <div class="clock-tile">
+              <div class="clock-val" id="timer-minutes">00</div>
+              <div class="clock-lbl">Minut</div>
+            </div>
+            <div class="clock-tile">
+              <div class="clock-val" id="timer-seconds">00</div>
+              <div class="clock-lbl">Sekund</div>
+            </div>
+          </div>
+
+          <!-- Dolny pasek szybkich statystyk w hero -->
+          <div class="hero-quick-stats">
+            <div class="hqs-item">
+              <div class="hqs-icon">💰</div>
+              <div class="hqs-text">
+                <div class="hqs-label">W kieszeni</div>
+                <div class="hqs-val" id="hero-money-saved">0.00 zł</div>
+              </div>
+            </div>
+            <div class="hqs-item">
+              <div class="hqs-icon" id="hero-stat-2-icon">🚭</div>
+              <div class="hqs-text">
+                <div class="hqs-label" id="hero-stat-2-label">Niewypalone</div>
+                <div class="hqs-val" id="hero-cigs-avoided">0 szt.</div>
+              </div>
+            </div>
+            <div class="hqs-item">
+              <div class="hqs-icon" id="hero-stat-3-icon">⏳</div>
+              <div class="hqs-text">
+                <div class="hqs-label" id="hero-stat-3-label">Odzyskane życie</div>
+                <div class="hqs-val" id="hero-life-gained">0h 0m</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Boczna Karta: Mądrość i Nastrój -->
+        <div class="hero-side-card">
+          <div class="daily-wisdom-card">
+            <div class="dw-header">
+              <div class="dw-tag">
+                <span>✨</span> Mądrość na tę chwilę
+              </div>
+              <button class="quote-refresh-btn" id="refresh-quote-btn" title="Wylosuj inny cytat motywacyjny">🔄 Nowa rada</button>
+            </div>
+            <blockquote class="dw-quote" id="daily-quote-text">
+              "Papieros niczego Ci nie daje. On tylko na krótko łagodzi dyskomfort i głód, który sam przed chwilą wywołał."
+            </blockquote>
+            <div class="dw-author" id="daily-quote-author">— Allen Carr</div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- Zawartość Zakładek -->
+    <div class="main-tabs-content">
+
+      <!-- ===================================================================
+           ZAKŁADKA 1: PULPIT (DASHBOARD)
+           =================================================================== -->
+      <section id="tab-pulpit" class="tab-panel active" aria-labelledby="nav-btn-pulpit">
+        
+        <!-- 4 Główne Karty KPI -->
+        <div class="kpi-grid">
+          
+          <!-- KPI 1: Finanse -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <div class="kpi-icon money">💰</div>
+              <span class="status-badge">Finanse</span>
+            </div>
+            <div class="kpi-value" id="kpi-money">0.00 zł</div>
+            <div class="kpi-label" id="kpi-money-label">Zaoszczędzone pieniądze</div>
+            <div class="kpi-sub">
+              <span id="kpi-daily-rate-prefix">📈 Oszczędzasz ok.</span>
+              <strong id="kpi-daily-cost">19.50 zł / dzień</strong>
+            </div>
+          </div>
+
+          <!-- KPI 2: Papierosy lub Liquid -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <div class="kpi-icon cigs" id="kpi-intake-icon">🚭</div>
+              <span class="status-badge" id="kpi-intake-badge">Czystość</span>
+            </div>
+            <div class="kpi-value" id="kpi-cigs">0</div>
+            <div class="kpi-label" id="kpi-intake-label">Odrzuconych papierosów</div>
+            <div class="kpi-sub">
+              <span id="kpi-intake-sub">💨 Nie wciągnięto dymu do płuc</span>
+            </div>
+          </div>
+
+          <!-- KPI 3: Czas życia lub Odrzucone Chmury / Puffy -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <div class="kpi-icon time" id="kpi-secondary-icon">⏳</div>
+              <span class="status-badge" id="kpi-secondary-badge">Długowieczność</span>
+            </div>
+            <div class="kpi-value" id="kpi-life">0h 0m</div>
+            <div class="kpi-label" id="kpi-secondary-label">Odzyskany czas życia</div>
+            <div class="kpi-sub">
+              <span id="kpi-secondary-sub">❤️ +11 minut za każdy niewypalony</span>
+            </div>
+          </div>
+
+          <!-- KPI 4: Detoks płuc (Smoła lub Chemia / Glikol / Metale) -->
+          <div class="kpi-card">
+            <div class="kpi-card-header">
+              <div class="kpi-icon tar" id="kpi-toxins-icon">🫁</div>
+              <span class="status-badge" id="kpi-toxins-badge">Detoks</span>
+            </div>
+            <div class="kpi-value" id="kpi-tar">0.0 g</div>
+            <div class="kpi-label" id="kpi-toxins-label">Niewdychanej smoły i substancji toksycznych</div>
+            <div class="kpi-sub">
+              <span id="kpi-toxins-sub">🌿 Twoje rzęski płucne pracują!</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Podgląd Najbliższego Kamienia Milowego Zdrowia -->
+        <div class="kpi-card" style="margin-bottom: 30px;">
+          <div class="section-head" style="margin-bottom: 12px;">
+            <div>
+              <h2 style="font-size: 1.25rem;" id="dashboard-milestone-title">🫁 Następny Etap Regeneracji Twojego Ciała</h2>
+              <p id="dashboard-milestone-desc">Medyczny proces naprawczy komórek, który aktualnie zachodzi w Twoim ciele</p>
+            </div>
+            <button class="btn btn-outline btn-sm" id="dashboard-go-health-btn">Zobacz całą oś czasu →</button>
+          </div>
+          
+          <div id="next-milestone-preview-content">
+            <!-- Dynamicznie wstrzykiwane przez JS -->
+          </div>
+        </div>
+
+        <!-- Szybka akcja / Notatka samopoczucia -->
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+          <div class="kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">📝 Dziennik Samopoczucia</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+                Zanotuj moment pokusy lub sukces w walce z chęcią sięgnięcia po nikotynę. Zapisywanie wyzwalaczy (kawa, stres, alkohol) zwiększa szansę na trwałe rzucenie o 70%.
+              </p>
+            </div>
+            <button class="btn btn-primary" id="dashboard-open-craving-btn">
+              ✍️ Zanotuj pokusę / sukces
+            </button>
+          </div>
+
+          <div class="kpi-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              <h3 style="font-size: 1.15rem; font-weight: 800; margin-bottom: 6px;">🚨 Dopadł Cię nagły głód?</h3>
+              <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 16px;">
+                Głód nikotynowy to tylko 3-minutowa fala. Skorzystaj z prowadzonego ćwiczenia oddechowego 4-7-8 lub odstresowującego pękania bąbelków.
+              </p>
+            </div>
+            <button class="btn btn-outline" id="dashboard-open-sos-btn" style="border-color: var(--accent-rose); color: #fb7185;">
+              🌊 Włącz tryb Urge Surfing (SOS)
+            </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 2: REGENERACJA CIAŁA (HEALTH TIMELINE)
+           =================================================================== -->
+      <section id="tab-zdrowie" class="tab-panel" aria-labelledby="nav-btn-zdrowie">
+        <div class="section-head">
+          <div>
+            <h2 id="health-timeline-title">🫁 Medyczna Oś Czasu Regeneracji Organizmu</h2>
+            <p id="health-timeline-subtitle">Oparta na oficjalnych protokołach badawczych WHO, Europejskiego Towarzystwa Kardiologicznego i American Lung Association</p>
+          </div>
+        </div>
+
+        <!-- Filtry kategorii -->
+        <div class="timeline-filter-bar" id="timeline-filter-bar">
+          <button class="filter-btn active" data-filter="all">Wszystkie etapy</button>
+          <button class="filter-btn" data-filter="in_progress">W trakcie</button>
+          <button class="filter-btn" data-filter="completed">Osiągnięte</button>
+          <button class="filter-btn" data-filter="serce">❤️ Serce i Krążenie</button>
+          <button class="filter-btn" data-filter="płuca">🫁 Płuca i Drogi oddechowe</button>
+          <button class="filter-btn" data-filter="zmysły">🧠 Zmysły i Nerwy</button>
+        </div>
+
+        <!-- Siatka kart postępu zdrowia -->
+        <div class="health-grid" id="health-milestones-grid">
+          <!-- Dynamicznie generowane z data.js -->
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 3: SOS FALA GŁODU (URGE SURFING & ANTISTRESS)
+           =================================================================== -->
+      <section id="tab-sos" class="tab-panel" aria-labelledby="nav-btn-sos">
+        <div class="section-head">
+          <div>
+            <h2>🚨 SOS: Pokonaj Falę Głodu Nikotynowego</h2>
+            <p>Głód nikotynowy to chwilowy wyrzut hormonów trwający zwykle od 3 do 5 minut. Nie walcz z nim – przepłyń na nim bezpiecznie.</p>
+          </div>
+        </div>
+
+        <div class="sos-container">
+          
+          <!-- Karta 1: Trening Oddechowy -->
+          <div class="sos-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+              <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff;">🧘 Trening Oddechowy (Regulacja Nerwu Błędnego)</h3>
+              <button class="btn btn-outline btn-sm" id="sound-toggle-btn" title="Włącz/wyłącz dźwięk dzwonka zen">
+                🔊 Dźwięk: WŁ
+              </button>
+            </div>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">
+              Głęboki, rytmiczny oddech natychmiast obniża tętno i wyłącza reakcję stresową układu współczulnego wywołaną chęcią sięgnięcia po dym lub vape.
+            </p>
+
+            <div class="breathing-box">
+              <div class="breathing-visual-wrap">
+                <div class="breathing-ring-outer"></div>
+                <div class="breathing-circle" id="breathing-circle">
+                  <div class="bc-action" id="breathing-action">WDECH</div>
+                  <div class="bc-seconds" id="breathing-timer">4</div>
+                </div>
+              </div>
+              <p id="breathing-instruction" style="font-size: 0.9rem; color: var(--accent-cyan-light); font-weight: 600; text-align: center; height: 24px;">
+                Wdychaj powoli i głęboko przez nos...
+              </p>
+            </div>
+
+            <div class="breathing-controls">
+              <button class="btn btn-primary" id="breathing-toggle-btn" style="flex: 1;">
+                ▶ Rozpocznij sesję oddechową (3 minuty)
+              </button>
+            </div>
+
+            <!-- Przycisk Zwycięstwa -->
+            <button class="craving-surfed-btn" id="craving-victory-btn">
+              🏆 Przetrwałem tę falę głodu! (Zapisz zwycięstwo)
+            </button>
+          </div>
+
+          <!-- Karta 2: Odwrócenie uwagi & Cyfrowy Fidget (Pękacz bąbelków) -->
+          <div class="sos-card">
+            <h3 style="font-size: 1.15rem; font-weight: 800; color: #fff; margin-bottom: 6px;">🫧 Zajmij dłonie: Cyfrowa Folia Bąbelkowa</h3>
+            <p style="font-size: 0.88rem; color: var(--text-muted);">
+              Gdy odczuwasz nawyk sięgania dłonią do ust – klikaj i pękaj bąbelki. Dźwięk i dotyk skutecznie przekierowują uwagę mózgu.
+            </p>
+
+            <div class="bubble-grid-wrap">
+              <div class="bubble-grid" id="bubble-wrap-grid">
+                <!-- 24 interaktywne bąbelki wstrzykiwane przez JS -->
+              </div>
+              <div class="bubble-meta">
+                <span>Pęknięte bąbelki: <strong id="bubbles-popped-count" style="color: #fff;">0</strong></span>
+                <button class="btn btn-outline btn-sm" id="reset-bubbles-btn">Odśwież folię 🔄</button>
+              </div>
+            </div>
+
+            <div style="margin-top: 24px; padding-top: 16px; border-top: 1px solid var(--border-glass);">
+              <h4 style="font-size: 0.95rem; font-weight: 700; color: #fbbf24; margin-bottom: 8px;">
+                💡 4 Złote Zasady Przetrwania:
+              </h4>
+              <ul style="font-size: 0.85rem; color: #cbd5e1; list-style: none; display: flex; flex-direction: column; gap: 6px;">
+                <li>💧 <strong>1. Woda:</strong> Wypij powoli dużą szklankę zimnej wody (najlepiej przez rurkę/ze słomką).</li>
+                <li>🚶 <strong>2. Ruch:</strong> Wstań od razu z miejsca, wyjdź do innego pokoju lub zrób 10 przysiadów.</li>
+                <li>⏱️ <strong>3. Czas:</strong> Spójrz na zegarek. Za 180 sekund chęć sięgnięcia po nikotynę spadnie o połowę.</li>
+                <li>🧠 <strong>4. Prawda:</strong> Przypomnij sobie: Nikotyna nie koi stresu – to ona jest jego przyczyną!</li>
+              </ul>
+            </div>
+
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 4: SKARBIEC MARZEŃ (FINANCIAL WISHLIST)
+           =================================================================== -->
+      <section id="tab-skarbiec" class="tab-panel" aria-labelledby="nav-btn-skarbiec">
+        <div class="section-head">
+          <div>
+            <h2>💰 Skarbiec Marzeń: Na co wydasz zaoszczędzone pieniądze?</h2>
+            <p>Nie puszczaj tysięcy złotych z dymem ani aerozolami. Zobacz, jak Twoje oszczędności finansują Twoje cele życiowe.</p>
+          </div>
+          <button class="btn btn-primary" id="open-add-goal-modal-btn">➕ Dodaj własny cel</button>
+        </div>
+
+        <div class="goals-grid" id="goals-grid">
+          <!-- Cele generowane z data.js i localStorage -->
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 5: ODZNAKI I OSIĄGNIĘCIA (GAMIFICATION)
+           =================================================================== -->
+      <section id="tab-odznaki" class="tab-panel" aria-labelledby="nav-btn-odznaki">
+        <div class="section-head">
+          <div>
+            <h2>🏆 Trofea i Odznaki Wolności</h2>
+            <p>Świętuj każdy kamień milowy. Odznaki odblokowują się automatycznie w miarę upływu wolnego czasu i zaoszczędzonych pieniędzy.</p>
+          </div>
+          <div class="status-badge" id="badges-unlocked-summary">
+            Odblokowano: 0 / 13
+          </div>
+        </div>
+
+        <div class="achievements-grid" id="achievements-grid">
+          <!-- Odznaki generowane przez JS -->
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 6: BAZA MĄDROŚCI & FAKT VS MIT
+           =================================================================== -->
+      <section id="tab-wiedza" class="tab-panel" aria-labelledby="nav-btn-wiedza">
+        <div class="section-head">
+          <div>
+            <h2>💡 Baza Mądrości, Psychologia & Rozprawianie się z Mitami</h2>
+            <p>Zrozumienie mechanizmu uzależnienia psychicznego i chemicznego to 90% sukcesu w trwałym odzyskaniu wolności.</p>
+          </div>
+        </div>
+
+        <div class="knowledge-layout">
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;" id="myths-section-title">
+              🚫 Rozprawiamy się z mitami
+            </h3>
+            <div id="myths-list">
+              <!-- Mity vs Fakty generowane dynamicznie dla aktywnej kategorii -->
+            </div>
+          </div>
+
+          <div>
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: #fff; margin-bottom: 16px; display: flex; align-items: center; gap: 8px;" id="psychology-section-title">
+              🧠 Psychologiczne wskazówki na trudne momenty
+            </h3>
+            <div id="psychology-tips-container" style="display: flex; flex-direction: column; gap: 16px;">
+              <!-- Porady wstrzykiwane dynamicznie dla aktywnej kategorii -->
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================
+           ZAKŁADKA 7: DZIENNIK POKUS (CRAVINGS JOURNAL)
+           =================================================================== -->
+      <section id="tab-dziennik" class="tab-panel" aria-labelledby="nav-btn-dziennik">
+        <div class="section-head">
+          <div>
+            <h2>📝 Dziennik Pokus i Samopoczucia</h2>
+            <p>Zapisuj momenty, w których pojawiła się chęć zapalenia oraz swoje zwycięstwa. Analizuj wyzwalacze (stres, kawa, nuda).</p>
+          </div>
+          <button class="btn btn-primary" id="open-craving-entry-modal-btn">➕ Dodaj wpis do dziennika</button>
+        </div>
+
+        <div class="journal-list" id="journal-entries-container">
+          <!-- Wpisy dziennika generowane przez JS -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Mobilny pasek nawigacji dolnej -->
+  <nav class="mobile-nav" aria-label="Nawigacja mobilna">
+    <button class="mobile-nav-btn active" data-tab="pulpit">
+      <span class="icon">🏠</span>
+      <span>Pulpit</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="zdrowie">
+      <span class="icon">🫁</span>
+      <span>Zdrowie</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="sos">
+      <span class="icon">🚨</span>
+      <span>SOS</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="skarbiec">
+      <span class="icon">💰</span>
+      <span>Skarbiec</span>
+    </button>
+    <button class="mobile-nav-btn" data-tab="odznaki">
+      <span class="icon">🏆</span>
+      <span>Odznaki</span>
+    </button>
+  </nav>
+
+  <!-- =======================================================================
+       MODAL 1: USTAWIENIA (SETTINGS) Z ZAKŁADKAMI PAPIEROSY / E-PAPIEROSY
+       ======================================================================= -->
+  <div class="modal-overlay" id="settings-modal" role="dialog" aria-modal="true" aria-labelledby="settings-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="settings-modal-title">⚙️ Ustawienia Liczników</h3>
+        <button class="modal-close-btn" data-close-modal="settings-modal" aria-label="Zamknij">&times;</button>
+      </div>
+
+      <!-- Zakładki wyboru kategorii w ustawieniach -->
+      <div class="settings-tabs">
+        <button type="button" class="settings-tab-btn active" data-settings-tab="cigarettes" id="settings-tab-btn-cigarettes">
+          <span>🚬</span> Papierosy Tradycyjne
+        </button>
+        <button type="button" class="settings-tab-btn" data-settings-tab="vape" id="settings-tab-btn-vape">
+          <span>💨</span> E-papierosy (Vaping)
+        </button>
+      </div>
+
+      <form id="settings-form">
+        
+        <!-- Sekcja 1: Ustawienia Papierosów Tradycyjnych -->
+        <div class="settings-section-pane active" id="pane-settings-cigarettes">
+          <div class="form-group">
+            <label for="setting-quit-date">Data i godzina zgaszenia ostatniego papierosa:</label>
+            <input type="datetime-local" class="form-control" id="setting-quit-date" required>
+          </div>
+          <div class="form-group">
+            <label for="setting-cigs-per-day">Liczba papierosów wypalanych dziennie (szt.):</label>
+            <input type="number" class="form-control" id="setting-cigs-per-day" min="1" max="100" value="20" required>
+          </div>
+          <div class="form-group">
+            <label for="setting-pack-price">Cena jednej paczki (20 sztuk) w PLN:</label>
+            <input type="number" step="0.10" class="form-control" id="setting-pack-price" min="1" max="200" value="19.50" required>
+            <span class="form-hint">Średnia rynkowa cena w Polsce: 19 - 22 zł</span>
+          </div>
+          <div class="form-group">
+            <label for="setting-years-smoked">Ile lat paliłeś przed podjęciem decyzji?:</label>
+            <input type="number" class="form-control" id="setting-years-smoked" min="1" max="70" value="7">
+          </div>
+        </div>
+
+        <!-- Sekcja 2: Ustawienia E-papierosów / Vapingu -->
+        <div class="settings-section-pane" id="pane-settings-vape">
+          <div class="form-group">
+            <label for="setting-vape-quit-date">Data i godzina odstawienia e-papierosa:</label>
+            <input type="datetime-local" class="form-control" id="setting-vape-quit-date">
+          </div>
+          <div class="form-group">
+            <label for="setting-bottle-price">Cena za 10ml liquidu (lub koszt 1 jednorazówki/wkładu) w PLN:</label>
+            <input type="number" step="0.10" class="form-control" id="setting-bottle-price" min="1" max="200" value="18.00">
+            <span class="form-hint">Średnia cena buteleczki 10ml soli lub premixu: 15 - 25 zł</span>
+          </div>
+          <div class="form-group">
+            <label for="setting-ml-per-day">Średnie dzienne zużycie liquidu w mililitrach (ml):</label>
+            <input type="number" step="0.5" class="form-control" id="setting-ml-per-day" min="0.5" max="30" value="3.5">
+            <span class="form-hint">Buteleczka 10ml starcza zazwyczaj na 2-4 dni (2-5 ml/dzień)</span>
+          </div>
+          <div class="form-group">
+            <label for="setting-nicotine-strength">Moc nikotyny w liquidzie (mg/ml):</label>
+            <select class="form-control" id="setting-nicotine-strength">
+              <option value="20" selected>20 mg/ml (Maksymalna sól nikotynowa)</option>
+              <option value="18">18 mg/ml (Mocny liquid tradycyjny)</option>
+              <option value="12">12 mg/ml (Średnia moc)</option>
+              <option value="6">6 mg/ml (Niska moc)</option>
+              <option value="3">3 mg/ml (Bardzo niska moc)</option>
+              <option value="0">0 mg/ml (Bez nikotyny)</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="setting-puffs-per-day">Szacunkowa liczba zaciągnięć (chmur/puffów) dziennie:</label>
+            <input type="number" class="form-control" id="setting-puffs-per-day" min="10" max="2000" value="350">
+            <span class="form-hint">Średni użytkownik poda wykonuje od 200 do 500 zaciągnięć na dobę</span>
+          </div>
+          <div class="form-group">
+            <label for="setting-years-vaped">Ile lat wapowałeś?:</label>
+            <input type="number" class="form-control" id="setting-years-vaped" min="1" max="30" value="3">
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close-modal="settings-modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zapisz ustawienia</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL 2: DODAJ CEL DO SKARBCZYKA
+       ======================================================================= -->
+  <div class="modal-overlay" id="goal-modal" role="dialog" aria-modal="true" aria-labelledby="goal-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="goal-modal-title">🎯 Dodaj Własny Cel Marzeń</h3>
+        <button class="modal-close-btn" data-close-modal="goal-modal" aria-label="Zamknij">&times;</button>
+      </div>
+      <form id="goal-form">
+        <div class="form-group">
+          <label for="goal-name-input">Nazwa celu (np. Nowy zegarek, Rower, Tatuaż):</label>
+          <input type="text" class="form-control" id="goal-name-input" placeholder="Wpisz nazwę nagrody..." required>
+        </div>
+        <div class="form-group">
+          <label for="goal-cost-input">Szacowany koszt w PLN:</label>
+          <input type="number" step="10" min="10" max="500000" class="form-control" id="goal-cost-input" placeholder="np. 800" required>
+        </div>
+        <div class="form-group">
+          <label for="goal-icon-input">Ikona / Symbol emoji:</label>
+          <select class="form-control" id="goal-icon-input">
+            <option value="🎁">🎁 Prezent dla siebie</option>
+            <option value="🎧">🎧 Elektronika / Gadżety</option>
+            <option value="✈️">✈️ Podróż / Wakacje</option>
+            <option value="🚴">🚴 Sport / Rekreacja</option>
+            <option value="💆">💆 SPA / Regeneracja</option>
+            <option value="🍽️">🍽️ Wykwintna kolacja</option>
+            <option value="📚">📚 Kurs / Samorozwój</option>
+            <option value="👔">👔 Nowe ubrania</option>
+          </select>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close-modal="goal-modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zapisz cel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- =======================================================================
+       MODAL 3: ZAPISZ POKUSĘ DO DZIENNIKA
+       ======================================================================= -->
+  <div class="modal-overlay" id="craving-modal" role="dialog" aria-modal="true" aria-labelledby="craving-modal-title">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3 id="craving-modal-title">📝 Nowy Wpis w Dzienniku Pokus</h3>
+        <button class="modal-close-btn" data-close-modal="craving-modal" aria-label="Zamknij">&times;</button>
+      </div>
+      <form id="craving-form">
+        <div class="form-group">
+          <label for="craving-trigger-select">Co wywołało chęć sięgnięcia po nikotynę (wyzwalacz)?:</label>
+          <select class="form-control" id="craving-trigger-select">
+            <option value="☕ Poranna lub popołudniowa kawa">☕ Poranna lub popołudniowa kawa</option>
+            <option value="😤 Stres / Nerwowa sytuacja">😤 Stres / Nerwowa sytuacja</option>
+            <option value="🍺 Alkohol / Wyjście ze znajomymi">🍺 Alkohol / Wyjście ze znajomymi</option>
+            <option value="🥱 Nuda / Oczekiwanie na coś">🥱 Nuda / Oczekiwanie na coś</option>
+            <option value="🍔 Po obfitym posiłku">🍔 Po obfitym posiłku</option>
+            <option value="🚗 Jazda samochodem / Korek">🚗 Jazda samochodem / Korek</option>
+            <option value="💻 Praca przy komputerze (nawyk ciągłego sięgania)">💻 Praca przy komputerze (nawyk ciągłego sięgania)</option>
+            <option value="❓ Inny powód">❓ Inny powód</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="craving-intensity-input">Siła pokusy (w skali 1 - 5):</label>
+          <select class="form-control" id="craving-intensity-input">
+            <option value="1">1 - Lekka, przelotna myśl</option>
+            <option value="2">2 - Średnia chęć zapalenia / zaciągnięcia</option>
+            <option value="3" selected>3 - Wyraźny głód nikotynowy</option>
+            <option value="4">4 - Silne napięcie i ochota</option>
+            <option value="5">5 - Bardzo ostry atak (Fala sztormowa)</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="craving-note-input">Krótka notatka (jak sobie poradziłeś?):</label>
+          <textarea class="form-control" id="craving-note-input" rows="3" placeholder="np. Wypiłem szklankę wody z cytryną, zrobiłem 15 głębokich wdechów i chęć zniknęła po 3 minutach!"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-outline" data-close-modal="craving-modal">Anuluj</button>
+          <button type="submit" class="btn btn-primary">Zapisz zwycięstwo</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

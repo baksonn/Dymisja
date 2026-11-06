@@ -1,0 +1,17 @@
+{
+  "name": "nosmoking-czysty-oddech",
+  "version": "1.0.0",
+  "description": "Aplikacja do mierzenia czasu niepalenia papierosów, regeneracji zdrowia i motywacji",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "keywords": [
+    "nosmoking",
+    "zdrowie",
+    "rzucanie-palenia",
+    "tracker"
+  ],
+  "author": "Antigravity",
+  "license": "MIT"
+}
